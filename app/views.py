@@ -81,6 +81,9 @@ def crawl_movie_details_from_imdb(movie_id):
     except NoSuchElementException:
         writer = ''
 
+    # Close the browser
+    browser.close()
+
     return {
         'data': {
             'movie_id': movie_id,
@@ -195,6 +198,9 @@ def search_movies_by_WC(search_string):
                 })
     except (NoSuchElementException, StaleElementReferenceException) as e:
         pass
+
+    # Close the browser
+    browser.close()
 
     return results 
 

@@ -11,7 +11,7 @@
     <p>Search and retrieve movie details from the IMDb database and store it in the local database when user selects the movie. Only for the first time, movie details are crawled from IMDb site. Next time, movie details will be served from the local database. Two different methods are used to retrieve search results.</p>
     <p><b>Api Search:&nbsp;</b>This method uses the IMDb search api to retrieve search results and use that information to crawl through the website for more info.</p>
     <p><b>Web Crawl Search:&nbsp;</b>This method retrieves the search result by sending input to the search bar and use that information to crawl through the website for more info.</p>
-    <p>Using Api search is more efficient than Web Crawling. Web Crawling need atleast 20 seconds to retrieve the suggestions for single query. Test it yourself!!!</p>
+    <p>Using Api search is more efficient than Web Crawling. Web Crawling need atleast 20 seconds to retrieve the suggestions for single query because javascript loads the suggesstions dynamically after getting the response from the api. Go on, Test it yourself!!!</p>
     <span style="width:50%;float:left;">
         <h2>API Search</h2>
         <input type="text" id="api_search" oninput="search_via_api()" placeholder="Search Movies">
