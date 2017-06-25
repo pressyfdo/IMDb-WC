@@ -16,6 +16,7 @@ Including another URLconf
 from django.conf.urls import include, url
 from django.contrib import admin
 from django.views.generic import TemplateView
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 from app import views
 
@@ -26,3 +27,5 @@ urlpatterns = [
     url(r'^movies/(?P<movie_id>[a-zA-Z0-9]+)/?$', views.get_movie, name='get_movie'),
     url(r'^admin/', admin.site.urls),
 ]
+
+urlpatterns += staticfiles_urlpatterns()

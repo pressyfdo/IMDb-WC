@@ -8,9 +8,13 @@ https://docs.djangoproject.com/en/1.11/howto/deployment/wsgi/
 """
 
 import os
+import pymysql
 
 from django.core.wsgi import get_wsgi_application
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "imdb_wc.settings")
+
+# MySQL client for python
+pymysql.install_as_MySQLdb()
 
 application = get_wsgi_application()

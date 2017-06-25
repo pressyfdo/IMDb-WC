@@ -1,6 +1,7 @@
 certifi==2017.4.17
 chardet==3.0.4
 Django==1.11.2
+gunicorn==19.7.1
 idna==2.5
 PyMySQL==0.7.11
 pytz==2017.2
