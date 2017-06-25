@@ -6,7 +6,10 @@ from django.http import HttpResponse
 
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait as wait
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import (
+    NoSuchElementException,
+    StaleElementReferenceException
+)
 
 from .models import Movie 
 
@@ -120,8 +123,11 @@ def index(request):
 def search(request):
     """
     Get the request, extract the search string, search the IMDb database 
-    and return the results.
+    either via api or web crawling and return the results.
     """
+    # Get the method to be used for searching.
+    method = request.GET.get('method')
+
     # Get the search string parameter from the request query strings.
     search_string = request.GET.get('search_string')
     print(search_string)
@@ -131,14 +137,17 @@ def search(request):
     # Perform search only if length of string is greater than zero.
     if len(search_string):
         # Search the IMdb database for the given search string
-        results = search_movies_via_api(search_string)
+        if method == 'api':
+            results = search_movies_via_api(search_string)
+        elif method == 'wc':
+            results = search_movies_by_WC(search_string)
 
     return HttpResponse(json.dumps({
         'data': results
     }))
 
 
-def search_movies_via_WC(search_string):
+def search_movies_by_WC(search_string):
     """
     Search for the movie in the IMDb Database by Web Crawling.
     """
@@ -149,40 +158,45 @@ def search_movies_via_WC(search_string):
     # Request for the IMDB homepage.
     browser.get('http://imdb.com')
 
-    # Get the search bar element
-    navbar_query_elem = browser.find_element_by_id('navbar-query')
+    try:
+        # Get the search bar element
+        navbar_query_elem = browser.find_element_by_id('navbar-query')
 
-    # Input the search string into the search bar
-    navbar_query_elem.send_keys(search_string)
+        # Input the search string into the search bar
+        navbar_query_elem.send_keys(search_string)
 
-    # Wait until the search result is loaded into the Source
-    wait(browser, 60).until(lambda x: len(browser.find_elements_by_xpath('//div[@id="navbar-suggestionsearch"]/a')))
+        # Wait until the search result is loaded into the Source
+        wait(browser, 60).until(lambda x: len(browser.find_elements_by_xpath('//div[@id="navbar-suggestionsearch"]/a')))
 
-    # browser.implicitly_wait(30)
-    # links = [link.get_attribute('href') 
-    
-    # Get the list of search result elements
-    navbar_suggestionsearch_elements = browser.find_elements_by_xpath('//div[@id="navbar-suggestionsearch"]/a')
+        # browser.implicitly_wait(30)
+        # links = [link.get_attribute('href') 
+        
+        # Get the list of search result elements
+        navbar_suggestionsearch_elements = browser.find_elements_by_xpath('//div[@id="navbar-suggestionsearch"]/a')
 
-    results = []
+        results = []
 
-    # Iterate through the list and extract the necessary details 
-    for link in navbar_suggestionsearch_elements[:-1]:
-        href = link.get_attribute('href')
-        values = link.text.split('\n') # find_element_by_xpath('//div[@id="navbar-suggestionsearch"]/a[' + str(i) + ']/div/span[1]').text
-        print(values)
+        # Iterate through the list and extract the necessary details 
+        for link in navbar_suggestionsearch_elements[:-1]:
+            href = link.get_attribute('href')
+            values = link.text.split('\n') # find_element_by_xpath('//div[@id="navbar-suggestionsearch"]/a[' + str(i) + ']/div/span[1]').text
+            print(values)
 
-        results.append({
-            'link': href,
-            'title': values[0],
-            'detail': values[1]
-        })
+            # Filter only the movies and Tv Series
+            splitted_url = href.split('/')
+            print(splitted_url)
+            if 'title' in splitted_url:
+                movie_id = splitted_url[splitted_url.index('title') + 1]
 
-    return json.dumps({
-        'data': {
-            'results': results
-        }
-    })
+                results.append({
+                    'id': movie_id,
+                    'l': values[0],
+                    'detail': values[1]
+                })
+    except (NoSuchElementException, StaleElementReferenceException) as e:
+        pass
+
+    return results 
 
 def search_movies_via_api(search_string):
     """
@@ -212,4 +226,7 @@ def search_movies_via_api(search_string):
     # Retrieve the result if any result is returned else return empty list
     data = json_data['d'] if 'd' in json_data else [] 
 
-    return data
+    # Filter only the movies
+    results = [item for item in data if 'q' in item]
+
+    return results
