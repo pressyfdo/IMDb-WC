@@ -1,0 +1,12 @@
+# Common files
+*.backup
+*.pyc
+*.swp
+*.swo
+*.log*
+
+# Directories
+__pycache__
+app/__pycache__
+imdb_wc/__pycache__
+
